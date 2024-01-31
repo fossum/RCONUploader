@@ -18,7 +18,8 @@ services:
       - ..:/workspace:cached
     # ports:
     #   - "8000:80"
-    restart: unless-stopped
+    restart: "no"
+    # network_mode: bridge
 
     # Overrides default command so things don't shut down after the process ends.
     command: /bin/sh -c "while sleep 1000; do :; done"
@@ -30,4 +31,5 @@ services:
      - "9090:9090"
     volumes:
       - ../prometheus.yml:/etc/prometheus/prometheus.yml
-    restart: unless-stopped
+    # restart: unless-stopped
+    restart: "no"
