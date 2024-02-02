@@ -39,12 +39,12 @@
         }
     },
 
-    "portsAttributes": {
-        "9090": {
-            "label": "Prometheus",
-            "onAutoForward": "notify"
-        }
-    }
+    // "portsAttributes": {
+    //     "9090": {
+    //         "label": "Prometheus",
+    //         "onAutoForward": "notify"
+    //     }
+    // }
 
     // Configure tool-specific properties.
     // "customizations": {},
