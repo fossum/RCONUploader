@@ -13,6 +13,8 @@ class Player:
         lines = text.splitlines()[1:]   # Toss header line.
         players = []
         for line in lines:
+            if not line:
+                continue
             name, uid, id = line.rsplit(',', maxsplit=2)
             players.append(Player(name, int(uid), int(id)))
         return players
