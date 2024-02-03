@@ -58,6 +58,10 @@ class MySQL(DBBase):
             create_cmd_parts.append(f'({options})')
         return self.execute(' '.join(create_cmd_parts), ignore_error=ignore_error) is not None
 
+    def create_user(self, username: str, password: str, if_not_exists: bool = False):
+        print(f"Creating user {username}")
+        self.execute(f"CREATE USER {'IF NOT EXISTS' if if_not_exists else ''} '{username}'@'%' IDENTIFIED BY '{password}'")
+
     def database_exists(self, name) -> bool:
         print(f"Does database {name} exist? ", end='')
         cursor = self.execute("SHOW DATABASES")
@@ -67,26 +71,3 @@ class MySQL(DBBase):
                 return True
         print('no.')
         return False
-
-
-
-
-# database='mydatabase'
-# user='root'
-# # user='user'
-# password='password'
-# with MySQL(host='db', user=user, password=password, database=database) as my:
-
-#     my.database_exists('palworld')
-#     my.database_exists('palworld2')
-#     my.create_database('palworld', if_not_exists=True)
-#     my.create_table('t2', '`emp_no` int(11) NOT NULL', if_not_exists=True)
-
-#     mycursor = my._db.cursor()
-#     mycursor.execute("SHOW DATABASES")
-#     for x in mycursor:
-#         print(x)
-
-#     mycursor.execute("SHOW TABLES")
-#     for x in mycursor:
-#         print(x)

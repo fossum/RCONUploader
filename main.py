@@ -1,6 +1,7 @@
 
 import json
 from pathlib import Path
+from time import sleep
 
 from rcon.source import Client
 
@@ -37,6 +38,15 @@ def sql_quote_list(items: list[str]) -> str:
     return f"`{'`, `'.join(map(str, items))}`"
 
 
+def get_players():
+    # Get currently online players.
+    with Client(this_config['rcon_host'], this_config['rcon_port'], passwd=this_config['rcon_pass']) as client:
+        players = Player.parse_list(client.run('ShowPlayers', enforce_id=False))
+    # players = mock_player_list()
+    print(f"Players Online: {', '.join([p.name for p in players])}")
+    return players
+
+
 def insert_rows(database: DBBase, players: list[Player]):
     # Log current players into known table.
     insert_syntax = 'INSERT IGNORE INTO `{}` ({}) VALUES ({}) ON DUPLICATE KEY UPDATE `name`="{}"'
@@ -60,31 +70,13 @@ def insert_rows(database: DBBase, players: list[Player]):
 if __name__ == "__main__":
     this_config = get_configuration()
 
-    # Get currently online players.
-    # with Client(this_config['rcon_host'], this_config['rcon_port'], passwd=this_config['rcon_pass']) as client:
-    #     players = Player.parse_list(client.run('ShowPlayers', enforce_id=False))
-    #     # print(client.run('Save', enforce_id=False))
-    players = mock_player_list()
-    print(f"Players Online: {', '.join([p.name for p in players])}")
+    while True:
+        try:
+            with MySQL(this_config['database_host'], this_config['database_user'], this_config['database_pass']) as db:
+                ensure_db_struct(db, this_config['database_name'])
 
-    with MySQL(this_config['database_host'], this_config['database_user'], this_config['database_pass']) as db:
-        ensure_db_struct(db, this_config['database_name'])
-        insert_rows(db, players)
-
-        print("Tables:")
-        mycursor = db._db.cursor()
-        mycursor.execute("SHOW TABLES")
-        for x in mycursor:
-            print(f"\t{x}")
-
-        print("Players:")
-        mycursor = db._db.cursor()
-        mycursor.execute(f"SELECT * FROM `{KNOWN_PLAYERS}`")
-        for x in mycursor:
-            print(f"\t{x}")
-
-        print("Online:")
-        mycursor = db._db.cursor()
-        mycursor.execute(f"SELECT * FROM `{ONLINE_TABLE}`")
-        for x in mycursor:
-            print(f"\t{x}")
+                while True:
+                    insert_rows(db, get_players())
+                    sleep(30)
+        except ConnectionRefusedError:
+            print('Server down...')

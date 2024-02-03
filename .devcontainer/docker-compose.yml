@@ -10,10 +10,7 @@ services:
     env_file: devcontainer.env
     volumes:
       - ..:/workspace:cached
-    # ports:
-    #   - "8000:80"
     restart: "no"
-    # network_mode: bridge
 
     # Overrides default command so things don't shut down after the process ends.
     command: /bin/sh -c "while sleep 1000; do :; done"

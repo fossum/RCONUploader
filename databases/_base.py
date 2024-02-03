@@ -35,5 +35,9 @@ class DBBase:
         """Creates a database in the server."""
 
     @abstractmethod
+    def create_user(self, username: str, password: str, if_not_exists: bool = False):
+        """Creates user"""
+
+    @abstractmethod
     def database_exists(self, name) -> bool:
         """Tells you if a database exists in the server."""
