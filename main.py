@@ -1,8 +1,10 @@
 
 import json
+import logging
 from pathlib import Path
 from time import sleep
 
+import rcon.exceptions
 from rcon.source import Client
 
 from configuration import get_configuration
@@ -13,9 +15,6 @@ from players import Player
 ONLINE_TABLE = 'online_players'
 KNOWN_PLAYERS = 'known_players'
 
-
-def mock_player_list() -> list[Player]:
-    return Player.parse_list((Path(__file__).parent / 'test/showplayers_sample.txt').read_text())
 
 def ensure_db_struct(database: DBBase, database_name: str) -> bool:
     # Connect to game database.
@@ -33,6 +32,18 @@ def ensure_db_struct(database: DBBase, database_name: str) -> bool:
         'steamId BIGINT UNSIGNED PRIMARY KEY, uid BIGINT UNSIGNED, name VARCHAR(32)',
         if_not_exists=True)
 
+    # Create Views
+    database.execute(
+        """
+            CREATE VIEW OnlinePlayers
+            SELECT `name`
+            FROM `known_players`
+            where JSON_CONTAINS(
+                (SELECT `players` FROM `online_players` ORDER BY id DESC LIMIT 1),
+                `steamId`)
+        """
+    )
+
 
 def sql_quote_list(items: list[str]) -> str:
     return f"`{'`, `'.join(map(str, items))}`"
@@ -43,7 +54,7 @@ def get_players():
     with Client(this_config['rcon_host'], this_config['rcon_port'], passwd=this_config['rcon_pass']) as client:
         players = Player.parse_list(client.run('ShowPlayers', enforce_id=False))
     # players = mock_player_list()
-    print(f"Players Online: {', '.join([p.name for p in players])}")
+    log.info(f"Players Online: {', '.join([p.name for p in players])}")
     return players
 
 
@@ -69,6 +80,10 @@ def insert_rows(database: DBBase, players: list[Player]):
 
 if __name__ == "__main__":
     this_config = get_configuration()
+    logging.basicConfig(
+        level=logging.INFO
+    )
+    log = logging.getLogger()
 
     while True:
         try:
@@ -76,7 +91,11 @@ if __name__ == "__main__":
                 ensure_db_struct(db, this_config['database_name'])
 
                 while True:
-                    insert_rows(db, get_players())
+                    try:
+                        insert_rows(db, get_players())
+                    except rcon.exceptions.EmptyResponse:
+                        log.warning('No RCON response.')
+                        pass
                     sleep(30)
         except ConnectionRefusedError:
-            print('Server down...')
+            log.warning('MySQL Server down.')
