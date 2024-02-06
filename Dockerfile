@@ -7,4 +7,10 @@ RUN pip3 install --break-system-packages \
     attrs \
     mysql-connector-python
 
-# Dev needs
+# Add Code
+ADD ./*.py /uploader/
+ADD ./databases/*.py /uploader/databases/
+
+# Run it
+WORKDIR /uploader
+ENTRYPOINT [ "python3", "./main.py" ]
