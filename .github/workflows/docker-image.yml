@@ -22,6 +22,6 @@ jobs:
       uses: macbre/push-to-ghcr@v13
       with:
         # Your secrets.GITHUB_TOKEN
-        github_token: ${{ secrets.access-token }}
+        github_token: ${{ secrets.TOKEN }}
         # Image name, e.g. my-user-name/my-repo (will be lowercased)
         image_name: fossum/RCONUploader
