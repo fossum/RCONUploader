@@ -24,4 +24,4 @@ jobs:
         # Your secrets.GITHUB_TOKEN
         github_token: ${{ secrets.TOKEN }}
         # Image name, e.g. my-user-name/my-repo (will be lowercased)
-        image_name: fossum/rconuploader:latest
+        image_name: fossum/rconuploader
