@@ -33,16 +33,19 @@ def ensure_db_struct(database: DBBase, database_name: str) -> bool:
         if_not_exists=True)
 
     # Create Views
-    database.execute(
-        """
-            CREATE VIEW OnlinePlayers
-            SELECT `name`
-            FROM `known_players`
-            where JSON_CONTAINS(
-                (SELECT `players` FROM `online_players` ORDER BY id DESC LIMIT 1),
-                `steamId`)
-        """
-    )
+    # CREATE OR REPLACE VIEW `palworld`.`OnlinePlayers` AS SELECT `name` FROM `known_players` where JSON_CONTAINS((SELECT `players` FROM `online_players` ORDER BY id DESC LIMIT 1), `steamId`);
+    # database.execute(
+    #     """
+    #         CREATE OR REPLACE
+    #         VIEW OnlinePlayers AS
+    #         SELECT `name`
+    #         FROM `known_players`
+    #         where JSON_CONTAINS(
+    #             (SELECT `players` FROM `online_players` ORDER BY id DESC LIMIT 1),
+    #             `steamId`)
+    #     """
+    # )
+    return True
 
 
 def sql_quote_list(items: list[str]) -> str:
@@ -78,6 +81,7 @@ def insert_rows(database: DBBase, players: list[Player]):
     # Save the rows.
     database.execute("COMMIT")
 
+
 if __name__ == "__main__":
     this_config = get_configuration()
     logging.basicConfig(
@@ -87,7 +91,11 @@ if __name__ == "__main__":
 
     while True:
         try:
-            with MySQL(this_config['database_host'], this_config['database_user'], this_config['database_pass']) as db:
+            with MySQL(
+                    this_config['database_host'],
+                    this_config['database_user'],
+                    this_config['database_pass'],
+                    this_config['database_name']) as db:
                 ensure_db_struct(db, this_config['database_name'])
 
                 while True:
@@ -95,7 +103,6 @@ if __name__ == "__main__":
                         insert_rows(db, get_players())
                     except rcon.exceptions.EmptyResponse:
                         log.warning('No RCON response.')
-                        pass
                     sleep(30)
         except ConnectionRefusedError:
             log.warning('MySQL Server down.')

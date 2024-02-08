@@ -8,9 +8,10 @@ RUN pip3 install --break-system-packages \
     mysql-connector-python
 
 # Add Code
+ADD ./entrypoint.sh /uploader/
 ADD ./*.py /uploader/
 ADD ./databases/*.py /uploader/databases/
 
 # Run it
 WORKDIR /uploader
-ENTRYPOINT [ "python3", "./main.py" ]
+ENTRYPOINT ["/bin/sh", "./entrypoint.sh"]
