@@ -1,0 +1,27 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag fossum/rconuploader:latest
+      
+    - name: push-to-ghcr
+      uses: macbre/push-to-ghcr@v13
+      with:
+        # Your secrets.GITHUB_TOKEN
+        github_token: ${{secrets.GITHUB_TOKEN}}
+        # Image name, e.g. my-user-name/my-repo (will be lowercased)
+        image_name: fossum/rconuploader
