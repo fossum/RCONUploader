@@ -2,7 +2,7 @@
 from pathlib import Path
 import unittest
 
-from players import Player
+from players import SteamPlayer
 
 
 class TestPlayer(unittest.TestCase):
@@ -13,9 +13,9 @@ class TestPlayer(unittest.TestCase):
         return super().setUp()
 
     def test_parse(self):
-        act = Player.parse_list(self.sample_data)
+        act = SteamPlayer.parse_list(self.sample_data)
         self.assertEqual(len(act), len(self.sample_data.splitlines()) - 1)
-        self.assertIsInstance(act[0], Player)
+        self.assertIsInstance(act[0], SteamPlayer)
 
 
 if __name__ == "__main__":

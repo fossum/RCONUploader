@@ -5,9 +5,11 @@ from games.rcon_game import RCONGame
 
 # Games
 from games.palworld import Palworld
+from games.minecraft import Minecraft
 
 GAME_MAPPING: dict[str, Type[RCONGame]] = {
-    'palworld': Palworld
+    'palworld': Palworld,
+    'minecraft': Minecraft
 }
 
 

@@ -40,7 +40,7 @@ GAME_PARAMS = [
     GameParam('type', '', str),
     GameParam('host', 'localhost', str),
     GameParam('port', '25575', int),
-    GameParam('pass', 'password', str),
+    GameParam('password', 'password', str),
 ]
 
 

@@ -41,3 +41,7 @@ class DBBase:
     @abstractmethod
     def database_exists(self, name) -> bool:
         """Tells you if a database exists in the server."""
+
+
+def sql_quote_list(items: list[str]) -> str:
+    return f"`{'`, `'.join(map(str, items))}`"
