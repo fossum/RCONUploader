@@ -21,14 +21,16 @@
         // }
     },
 
-    // Use 'forwardPorts' to make a list of ports inside the container available locally.
-    // "forwardPorts": [],
-
-    // Use 'postCreateCommand' to run commands after the container is created.
-    // "postCreateCommand": "uname -a",
+    "initializeCommand": [
+        "bash .devcontainer/init_venv.sh",
+        "docker compose down",
+        // "docker network prune --force"
+    ],
+    // "postCreateCommand": "docker stop $(docker ps -a -q)",
 
     "shutdownAction": "stopCompose",
 
+    // Configure tool-specific properties.
     "customizations": {
         "vscode": {
             "extensions": [
@@ -38,16 +40,6 @@
             ]
         }
     },
-
-    // "portsAttributes": {
-    //     "9090": {
-    //         "label": "Prometheus",
-    //         "onAutoForward": "notify"
-    //     }
-    // }
-
-    // Configure tool-specific properties.
-    // "customizations": {},
 
     // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
     // "remoteUser": "root"
