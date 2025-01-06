@@ -19,14 +19,15 @@
         // "ghcr.io/devcontainers-contrib/features/prometheus:1": {
         //     "version": "latest"
         // }
+        "ghcr.io/devcontainers/features/git:1": {}
     },
 
     "initializeCommand": [
-        "bash .devcontainer/init_venv.sh",
-        "docker compose down",
+        // "docker compose down",
         // "docker network prune --force"
     ],
     // "postCreateCommand": "docker stop $(docker ps -a -q)",
+    "postCreateCommand": "sh .devcontainer/init_venv.sh",
 
     "shutdownAction": "stopCompose",
 
