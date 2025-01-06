@@ -1,1 +1,3 @@
 gamedig
+rcon
+attrs
