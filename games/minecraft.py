@@ -1,23 +1,25 @@
+import gamedig
 
-from games.rcon_game import RCONGame
+from games.base_game import Game
 from players import BasicPlayer
 
 
-class Minecraft(RCONGame, player_type=BasicPlayer):
+class Minecraft(Game):
+    PLAYER_TYPE = BasicPlayer
 
-    def get_players(self) -> list[str]:
-        # Get currently online players.
-        # Example: 'There are 1 of a max of 20 players online: fossum99'
-        raw = self.send('/list')
-        player_str = raw.split(': ')[1]
-        if player_str.strip() == '':
+    def get_players(self) -> tuple[str]:
+        """Get a list of players currently on the server.
+
+        Returns:
+            list[str]: A list of player names.
+        """
+        response = gamedig.query(game_id="minecraft", address=self._host, port=self._port)
+        players = response["players"]
+        if players is None:
             players = []
-        else:
-            players = [BasicPlayer(p.strip()) for p in raw.split(': ')[1].split(',')]
-        self._log.info(f"Players Online: {', '.join([p.name for p in players])}")
-        return players
+        return tuple(BasicPlayer(p["name"]) for p in players)
 
 
 if __name__ == "__main__":
-    rcon = Minecraft('192.168.1.65', 25576, "OurRCONP@ssword")
+    rcon = Minecraft('192.168.1.65', 25565, "OurRCONP@ssword")
     print(rcon.get_players())

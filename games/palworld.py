@@ -3,7 +3,9 @@ from games.rcon_game import RCONGame
 from players import BasePlayer, SteamPlayer
 
 
-class Palworld(RCONGame, player_type=SteamPlayer):
+class Palworld(RCONGame):
+    PLAYER_TYPE = SteamPlayer
+
     def get_players(self) -> list[BasePlayer]:
         # Get currently online players.
         players = Palworld._parse_list(self.send('ShowPlayers', enforce_id=False))
