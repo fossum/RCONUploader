@@ -28,10 +28,10 @@ class GDGame(Game):
     def query(self) -> dict:
         kwargs = {
             "game_id": self.GAME_NAME,
-            "address": self.fqdn_to_ip(self._host)
+            "address": self.fqdn_to_ip(self.host)
         }
         if self._port:
             kwargs["port"] = self._port
-        if self._pass:
-            kwargs["port"] = self._pass
+        # if self._pass:
+        #     kwargs["password"] = self._pass
         return gamedig.query(**kwargs)

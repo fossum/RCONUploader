@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from databases.structs._base import BaseDB
 from databases._base import DBBase, sql_quote_list
+from players import BasePlayer
 
 if TYPE_CHECKING:
     from players import SteamPlayer
@@ -13,10 +14,11 @@ if TYPE_CHECKING:
 
 class SteamDB(BaseDB):
     @staticmethod
-    def insert_rows(database: DBBase, game: str, players: list[SteamPlayer]):
+    def insert_rows(database: DBBase, game: str, players: list[BasePlayer]):
         # Log current players into known table.
         insert_syntax = 'INSERT IGNORE INTO `{}` ({}) VALUES ({}) ON DUPLICATE KEY UPDATE `name`="{}"'
         for player in players:
+            assert isinstance(player, SteamPlayer)
             database.execute(insert_syntax.format(
                 BaseDB.KNOWN_PLAYERS_F.format(game),
                 sql_quote_list(['steamId', 'uid', 'name']),

@@ -13,7 +13,7 @@ class DBBase:
         """Exits the context and closes the resource."""
 
     @abstractmethod
-    def execute(self, command: str, ignore_error: bool = False) -> list[str]:
+    def execute(self, command: str, ignore_error: bool = False) -> tuple[str]:
         raise NotImplementedError
 
     @abstractmethod
@@ -41,6 +41,10 @@ class DBBase:
     @abstractmethod
     def database_exists(self, name) -> bool:
         """Tells you if a database exists in the server."""
+
+    @abstractmethod
+    def delete_database(self, name: str, ignore_error: bool = False) -> bool:
+        """Deletes a database from the server."""
 
 
 def sql_quote_list(items: list[str]) -> str:

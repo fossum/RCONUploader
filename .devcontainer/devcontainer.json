@@ -38,7 +38,9 @@
                 "ms-python.python",
                 "ms-python.debugpy",
                 "ms-azuretools.vscode-docker",
-                "github.copilot"
+                "github.copilot",
+                "ms-python.mypy-type-checker",
+                "ms-python.black-formatter"
             ]
         }
     },

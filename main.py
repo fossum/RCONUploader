@@ -1,16 +1,15 @@
 
-import json
 import logging
 from time import sleep
 
+from gamedig import AutoQueryError
 import rcon.exceptions
 
 from configuration import get_configuration, GAMES_KEY
-from databases import DBBase
 from databases.structs import get_db
-from databases import MySQL
+from databases import MariaDb
 from games import get_game
-from players import SteamPlayer
+from games.base_game import Game
 
 
 if __name__ == "__main__":
@@ -20,12 +19,12 @@ if __name__ == "__main__":
     )
     log = logging.getLogger()
 
-    games = []
+    games: list[Game] = []
     for game_dict in this_config[GAMES_KEY].values():
         game_type = game_dict.pop('type')
         games.append(get_game(game_type, **game_dict))
 
-    with MySQL(
+    with MariaDb(
             this_config['database_host'],
             this_config['database_user'],
             this_config['database_pass'],
@@ -35,7 +34,7 @@ if __name__ == "__main__":
 
     while True:
         try:
-            with MySQL(
+            with MariaDb(
                     this_config['database_host'],
                     this_config['database_user'],
                     this_config['database_pass'],
@@ -47,6 +46,8 @@ if __name__ == "__main__":
                             get_db(game.PLAYER_TYPE).insert_rows(db, type(game).__name__.lower(), game.get_players())
                         except rcon.exceptions.EmptyResponse:
                             log.warning('No RCON response.')
-                    sleep(5)
+                        except AutoQueryError as exc:
+                            log.warning(f'[{game.host}] AutoQuery failed with error: %s', exc)
+                    sleep(15)
         except ConnectionRefusedError:
             log.warning('MySQL Server down.')

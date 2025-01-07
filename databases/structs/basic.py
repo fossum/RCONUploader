@@ -8,15 +8,16 @@ from databases.structs._base import BaseDB
 from databases._base import DBBase, sql_quote_list
 
 if TYPE_CHECKING:
-    from players import BasePlayer, BasicPlayer
+    from players import BasicPlayer
 
 
 class BasicDB(BaseDB):
-    def insert_rows(database: DBBase, game: str, players: list[BasePlayer]):
+    @staticmethod
+    def insert_rows(database: DBBase, game: str, players: list[BasicPlayer]):
         # Log current players into known table.
         insert_syntax = 'INSERT IGNORE INTO `{}` ({}) VALUES ({}) ON DUPLICATE KEY UPDATE `name`="{}"'
         for player in players:
-            assert isinstance(player, BasicPlayer)
+            # assert isinstance(player, BasicPlayer)
             database.execute(insert_syntax.format(
                 BaseDB.KNOWN_PLAYERS_F.format(game),
                 sql_quote_list(['name']),
@@ -33,7 +34,7 @@ class BasicDB(BaseDB):
         # Save the rows.
         database.execute("COMMIT")
 
-
+    @staticmethod
     def ensure_db_struct(database: DBBase, game: str) -> bool:
         # # Connect to uploader database.
         # if not database.database_exists(database_name):

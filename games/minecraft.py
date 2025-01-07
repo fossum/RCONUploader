@@ -6,11 +6,11 @@ from players import BasicPlayer
 class Minecraft(GDGame, game_name="minecraft"):
     PLAYER_TYPE = BasicPlayer
 
-    def get_players(self) -> tuple[str]:
+    def get_players(self) -> tuple[BasicPlayer, ...]:
         """Get a list of players currently on the server.
 
         Returns:
-            list[str]: A list of player names.
+            tuple[BasicPlayer, ...]: A list of online player names.
         """
         response = self.query()
         players = response["players"]

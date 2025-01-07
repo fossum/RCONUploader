@@ -1,33 +1,46 @@
 
-import mysql.connector
-from mysql.connector.connection import MySQLConnection
+import mariadb
 
 from databases._base import DBBase
 
 
-class MySQL(DBBase):
+class MariaDb(DBBase):
 
-    def __init__(self, host, user, password, database: str | None = None):
-        self._db = MySQLConnection(host=host, user=user, password=password, database=database)
+    def __init__(self, host, user, password, database: str | None = None) -> None:
+        self._db = None
+        self._host = host
+        self._user = user
+        self._password = password
+        self._database_name = database
 
     def __enter__(self) -> DBBase:
-        self._db.connect()
+        self._db = mariadb.connect(
+            host=self._host,
+            user=self._user,
+            password=self._password,
+            database=self._database_name
+        )
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self._db.close()
 
-    def execute(self, command: str, ignore_error: bool = False) -> list[tuple] | None:
+    def execute(self, command: str, ignore_error: bool = False) -> tuple[tuple] | None:
         cursor = self._db.cursor(buffered=True)
         try:
             cursor.execute(command)
-        except mysql.connector.Error:
+            if command.strip().upper().startswith(('SELECT', 'SHOW')):
+                ret = tuple(cursor.fetchall())
+            else:
+                self._db.commit()
+                ret = ()
+        except mariadb.Error:
             if not ignore_error:
                 raise
             return None
-        ret = cursor.fetchall() if cursor.with_rows else []
-        cursor.close()
-        return ret
+        finally:
+            cursor.close()
+        return tuple(ret)
 
     def create_table(
             self,
@@ -65,9 +78,22 @@ class MySQL(DBBase):
     def database_exists(self, name) -> bool:
         print(f"Does database {name} exist? ", end='')
         cursor = self.execute("SHOW DATABASES")
-        for row in cursor:
-            if name == row[0]:
-                print('yes.')
-                return True
+        if cursor is not None:
+            for row in cursor:
+                if name == row[0]:
+                    print('yes.')
+                    return True
         print('no.')
         return False
+
+    def delete_database(self, name: str, ignore_error: bool = False) -> bool:
+        print(f"Deleting database {name}")
+        return self.execute(f"DROP DATABASE {name}", ignore_error=ignore_error) is not None
+
+    def print_table(self, table_name: str | None = None) -> None:
+        """Prints the contents of the table."""
+        print(f"Rows in table {self._database_name}")
+        cursor = self.execute(f"SELECT * FROM {table_name}")
+        if cursor is not None:
+            for row in cursor:
+                print(row)

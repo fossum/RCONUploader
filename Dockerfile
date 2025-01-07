@@ -1,7 +1,7 @@
-FROM ubuntu
+FROM mcr.microsoft.com/devcontainers/base:ubuntu
 
 RUN apt update && \
-    apt install openssh-client python3 python3-pip python3-venv -y
+    apt install openssh-client python3 python3-pip python3-venv libmariadb-dev -y
 # RUN pip3 install --break-system-packages \
 #     git+https://github.com/fossum/rcon.git@feature/add-enforce-labels-flag \
 #     attrs \
