@@ -1,5 +1,6 @@
 
 from __future__ import annotations
+
 import logging
 from typing import TYPE_CHECKING
 
@@ -10,7 +11,7 @@ if TYPE_CHECKING:
 class Game:
     PLAYER_TYPE: BasePlayer
 
-    def __init__(self, host: str, port, password: str) -> None:
+    def __init__(self, host: str, port: int = 0, password: str = "") -> None:
         self._log = logging.getLogger(__name__)
         self._host = host
         self._port = port
