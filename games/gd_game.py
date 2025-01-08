@@ -32,15 +32,18 @@ class GDGame(Game):
             warning(f'Unable to get the IP address for {domain}')
         return ip_address
 
-    def query(self) -> dict:
-        kwargs: GDGame.QueryArgs = {
-            "game_id": self.GAME_NAME,
-            "address": self.fqdn_to_ip(self.host),
-            "port": self.port if self.port else None,
-            "timeout_settings": {
-                "retries": 3,
-            }
-        }
+    def query(self, extra_settings = None) -> dict:
         # if self._pass:
         #     kwargs["password"] = self._pass
-        return gamedig.query(**kwargs)
+        return gamedig.query(
+            game_id=self.GAME_NAME,
+            address=self.fqdn_to_ip(self.host),
+            port=self.port if self.port else None,
+            timeout_settings={
+                "retries": 3,
+                "read": 10,
+                "write": 10,
+                "connect": 10
+            },
+            extra_settings=extra_settings
+        )

@@ -44,10 +44,11 @@ GAME_PARAMS = [
 ]
 
 
-def get_configuration() -> dict[str, str]:
-    config = {}
+def get_configuration() -> dict[str, dict[str, str | int]]:
+    config: dict[str, dict[str, str | int]] = {}
     file_config = ConfigParser()
-    file_config.read(str(CONFIG_PATH))
+    if CONFIG_PATH.exists():
+        file_config.read(str(CONFIG_PATH))
 
     def best_option(default=None, env_var=None, config_var=None):
         if config_var is not None:
@@ -60,19 +61,21 @@ def get_configuration() -> dict[str, str]:
         raise ValueError("No value set.")
 
     # Database
+    if config.get(DATABASE_SECTION) is None:
+        config[DATABASE_SECTION] = {}
     for param in DB_PARAMS:
         option = f"{param.config_section}_{param.name}".lower()
-        assert config.get(option) is None, f"Duplicate option '{option}' detected."
+        assert config[DATABASE_SECTION].get(option) is None, f"Duplicate option '{option}' detected."
 
         # Check Config File
         config_var = None
         if file_config.has_section(param.config_section):
             config_var = file_config.get(param.config_section, param.name, fallback=None)
 
-        config[option] = best_option(param.default_value, getenv(param.env_var), config_var)
+        config[DATABASE_SECTION][option] = best_option(param.default_value, getenv(param.env_var), config_var)
 
-        assert config[option], f'No configuration "{option}" value set.'
-        config[option] = param.type(config[option])
+        assert config[DATABASE_SECTION][option], f'No configuration "{option}" value set.'
+        config[DATABASE_SECTION][option] = param.type(config[DATABASE_SECTION][option])
 
     # Each Game Config
     for game in file_config.sections():
@@ -94,4 +97,19 @@ def get_configuration() -> dict[str, str]:
             assert game_config[param.name], f'No configuration "{param.name}" value set.'
             game_config[param.name] = param.type(game_config[param.name])
 
+    if not CONFIG_PATH.exists():
+        write_configuration(config)
+
     return config
+
+
+def write_configuration(config: dict[str, dict[str, str | int]]):
+    file_config = ConfigParser()
+
+    for key, value in config.items():
+        file_config.add_section(key)
+        for sub_key, sub_value in value.items():
+            file_config.set(key, sub_key, str(sub_value))
+
+    with CONFIG_PATH.open('w') as file:
+        file_config.write(file)

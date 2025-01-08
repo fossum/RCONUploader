@@ -2,11 +2,11 @@
 import logging
 from time import sleep
 
-from gamedig import AutoQueryError
+from gamedig import AutoQueryError, PacketReceiveError
 
 import rcon.exceptions
 
-from configuration import get_configuration, GAMES_KEY
+from configuration import DATABASE_SECTION, GAMES_KEY, get_configuration
 from databases.structs import get_db
 from databases import MariaDb
 from games import get_game
@@ -25,21 +25,25 @@ if __name__ == "__main__":
         game_type = game_dict.pop('type')
         games.append(get_game(game_type, **game_dict))
 
+    database_config = this_config[DATABASE_SECTION]
+
     with MariaDb(
-            this_config['database_host'],
-            this_config['database_user'],
-            this_config['database_pass'],
-            this_config['database_name']) as db:
+            host=database_config['database_host'],
+            user=database_config['database_user'],
+            password=database_config['database_pass'],
+            database=database_config['database_name']
+        ) as db:
         for game in games:
             get_db(game.PLAYER_TYPE).ensure_db_struct(db, game.get_table_prefix())
 
     while True:
         try:
             with MariaDb(
-                    this_config['database_host'],
-                    this_config['database_user'],
-                    this_config['database_pass'],
-                    this_config['database_name']) as db:
+                host=database_config['database_host'],
+                user=database_config['database_user'],
+                password=database_config['database_pass'],
+                database=database_config['database_name']
+            ) as db:
 
                 while True:
                     for game in games:
@@ -50,9 +54,9 @@ if __name__ == "__main__":
                                 game.get_players()
                             )
                         except rcon.exceptions.EmptyResponse:
-                            log.warning('No RCON response.')
-                        except AutoQueryError as exc:
-                            log.warning(f'[{game.host}] AutoQuery failed with error: %s', exc)
+                            log.warning(f'[{type(game).__name__}][{game.host}]:No RCON response.')
+                        except (AutoQueryError, PacketReceiveError) as exc:
+                            log.warning(f'[{type(game).__name__}][{game.host}]:query error: {exc}')
                     sleep(15)
         except ConnectionRefusedError:
             log.warning('MySQL Server down.')
