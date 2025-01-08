@@ -3,6 +3,7 @@ import logging
 from time import sleep
 
 from gamedig import AutoQueryError
+
 import rcon.exceptions
 
 from configuration import get_configuration, GAMES_KEY
