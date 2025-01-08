@@ -6,29 +6,29 @@ from typing import TYPE_CHECKING
 
 from databases.structs._base import BaseDB
 from databases._base import DBBase, sql_quote_list
-from players import BasePlayer
+from players import BasePlayer, SteamPlayer
 
 if TYPE_CHECKING:
-    from players import SteamPlayer
+    from typing import Sequence
 
 
 class SteamDB(BaseDB):
     @staticmethod
-    def insert_rows(database: DBBase, game: str, players: list[BasePlayer]):
-        # Log current players into known table.
+    def insert_rows(database: DBBase, table_prefix: str, players: Sequence[BasePlayer]):
+        """Insert player data rows into the table."""
         insert_syntax = 'INSERT IGNORE INTO `{}` ({}) VALUES ({}) ON DUPLICATE KEY UPDATE `name`="{}"'
         for player in players:
-            assert isinstance(player, SteamPlayer)
+            assert isinstance(player, SteamPlayer), f'Player is not a SteamPlayer: {player}'
             database.execute(insert_syntax.format(
-                BaseDB.KNOWN_PLAYERS_F.format(game),
+                BaseDB.KNOWN_PLAYERS_F.format(table_prefix),
                 sql_quote_list(['steamId', 'uid', 'name']),
                 ', '.join([str(player.steam_id), str(player.player_uid), f'"{player.name}"']),
                 player.name
             ))
 
         # Log currently online players.
-        cursor = database._db.cursor()
-        insert_syntax = f'INSERT INTO `{BaseDB.ONLINE_TABLE_F.format(game)}` (count, players) VALUES (%s, %s)'
+        cursor = database.get_cursor()
+        insert_syntax = f'INSERT INTO `{BaseDB.ONLINE_TABLE_F.format(table_prefix)}` (count, players) VALUES (%s, %s)'
         json_s = json.dumps([p.steam_id for p in players])
         cursor.execute(insert_syntax, [len(players), json_s])
 
@@ -36,7 +36,7 @@ class SteamDB(BaseDB):
         database.execute("COMMIT")
 
     @staticmethod
-    def ensure_db_struct(database: DBBase, game: str) -> bool:
+    def ensure_db_struct(database: DBBase, table_prefix: str) -> bool:
         # # Connect to uploader database.
         # if not database.database_exists(database_name):
         #     raise RuntimeError('No database or missing privelegdes.')
@@ -44,7 +44,7 @@ class SteamDB(BaseDB):
 
         # Ensure table structure.
         database.create_table(
-            BaseDB.ONLINE_TABLE_F.format(game),
+            BaseDB.ONLINE_TABLE_F.format(table_prefix),
             '''
                 id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                 time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -53,7 +53,7 @@ class SteamDB(BaseDB):
             ''',
             if_not_exists=True)
         database.create_table(
-            BaseDB.KNOWN_PLAYERS_F.format(game),
+            BaseDB.KNOWN_PLAYERS_F.format(table_prefix),
             '''
                 steamId BIGINT UNSIGNED PRIMARY KEY,
                 uid BIGINT UNSIGNED,

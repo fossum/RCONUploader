@@ -5,6 +5,7 @@ from players import BasicPlayer
 
 class Minecraft(GDGame, game_name="minecraft"):
     PLAYER_TYPE = BasicPlayer
+    DEFAULT_PORT = 25565
 
     def get_players(self) -> tuple[BasicPlayer, ...]:
         """Get a list of players currently on the server.

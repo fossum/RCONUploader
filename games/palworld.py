@@ -5,6 +5,7 @@ from players import BasePlayer, SteamPlayer
 
 class Palworld(RCONGame):
     PLAYER_TYPE = SteamPlayer
+    DEFAULT_PORT = 25575
 
     def get_players(self) -> tuple[BasePlayer, ...]:
         """Get a list of players currently on the server."""

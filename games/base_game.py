@@ -10,11 +10,15 @@ if TYPE_CHECKING:
 
 class Game:
     PLAYER_TYPE: type[BasePlayer]
+    DEFAULT_PORT = 0
 
     def __init__(self, host: str, port: int = 0, password: str = "") -> None:
         self._log = logging.getLogger(__name__)
+
+        assert self.DEFAULT_PORT != 0, "DEFAULT_PORT must be set in subclass."
+
         self.host = host
-        self._port = port
+        self.port = port if port != 0 else self.DEFAULT_PORT
         self._pass = password
 
         if self.PLAYER_TYPE is None:
@@ -27,3 +31,7 @@ class Game:
             tuple[BasicPlayer, ...]: A list of online player names.
         """
         raise NotImplementedError
+
+    def get_table_prefix(self) -> str:
+        """Get the database table prefix for this game."""
+        return f'{self.host}:{self.port}'

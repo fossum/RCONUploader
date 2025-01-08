@@ -17,6 +17,10 @@ class DBBase:
         raise NotImplementedError
 
     @abstractmethod
+    def get_cursor(self):
+        """Returns a cursor object to the database."""
+
+    @abstractmethod
     def create_table(
             self,
             table_name: str,
@@ -45,6 +49,14 @@ class DBBase:
     @abstractmethod
     def delete_database(self, name: str, ignore_error: bool = False) -> bool:
         """Deletes a database from the server."""
+
+    @abstractmethod
+    def get_table_names(self) -> tuple[str, ...]:
+        """Returns a list of table names in the database."""
+
+    @abstractmethod
+    def print_table(self, table_name: str) -> None:
+        """Prints the contents of a table to the console."""
 
 
 def sql_quote_list(items: list[str]) -> str:

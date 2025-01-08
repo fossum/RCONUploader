@@ -1,8 +1,9 @@
 
 from __future__ import annotations
 
-from logging import warn, warning
+from logging import warning
 import socket
+from typing import TypedDict
 
 import gamedig
 
@@ -11,6 +12,12 @@ from games.base_game import Game
 
 class GDGame(Game):
     GAME_NAME: str
+
+    class QueryArgs(TypedDict):
+        game_id: str
+        address: str
+        port: int | None
+        timeout_settings: gamedig.TimeoutSettings | None
 
     def __init_subclass__(cls, game_name: str):
         cls.GAME_NAME = game_name
@@ -26,12 +33,14 @@ class GDGame(Game):
         return ip_address
 
     def query(self) -> dict:
-        kwargs = {
+        kwargs: GDGame.QueryArgs = {
             "game_id": self.GAME_NAME,
-            "address": self.fqdn_to_ip(self.host)
+            "address": self.fqdn_to_ip(self.host),
+            "port": self.port if self.port else None,
+            "timeout_settings": {
+                "retries": 3,
+            }
         }
-        if self._port:
-            kwargs["port"] = self._port
         # if self._pass:
         #     kwargs["password"] = self._pass
         return gamedig.query(**kwargs)

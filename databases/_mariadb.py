@@ -23,24 +23,29 @@ class MariaDb(DBBase):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        self._db.close()
+        if self._db is not None:
+            self._db.close()
 
-    def execute(self, command: str, ignore_error: bool = False) -> tuple[tuple] | None:
-        cursor = self._db.cursor(buffered=True)
+    def execute(self, command: str, ignore_error: bool = False) -> tuple[str]:
+        cursor = self.get_cursor()
         try:
             cursor.execute(command)
             if command.strip().upper().startswith(('SELECT', 'SHOW')):
                 ret = tuple(cursor.fetchall())
             else:
+                assert self._db is not None, "Database not connected."
                 self._db.commit()
                 ret = ()
         except mariadb.Error:
             if not ignore_error:
                 raise
-            return None
+            return ()
         finally:
             cursor.close()
         return tuple(ret)
+
+    def get_cursor(self):
+        return self._db.cursor(buffered=True)
 
     def create_table(
             self,
@@ -92,8 +97,15 @@ class MariaDb(DBBase):
 
     def print_table(self, table_name: str | None = None) -> None:
         """Prints the contents of the table."""
-        print(f"Rows in table {self._database_name}")
-        cursor = self.execute(f"SELECT * FROM {table_name}")
+        print(f"Rows in table {self._database_name}.{table_name}:")
+        cursor = self.execute(f"SELECT * FROM `{table_name}` LIMIT 10")
         if cursor is not None:
             for row in cursor:
                 print(row)
+
+    def get_table_names(self) -> tuple[str, ...]:
+        """Get a list of table names in the database."""
+        cursor = self.execute("SHOW TABLES")
+        if cursor is not None:
+            return tuple(row[0] for row in cursor)
+        return ()

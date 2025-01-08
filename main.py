@@ -30,7 +30,7 @@ if __name__ == "__main__":
             this_config['database_pass'],
             this_config['database_name']) as db:
         for game in games:
-            get_db(game.PLAYER_TYPE).ensure_db_struct(db, type(game).__name__.lower())
+            get_db(game.PLAYER_TYPE).ensure_db_struct(db, game.get_table_prefix())
 
     while True:
         try:
@@ -43,7 +43,11 @@ if __name__ == "__main__":
                 while True:
                     for game in games:
                         try:
-                            get_db(game.PLAYER_TYPE).insert_rows(db, type(game).__name__.lower(), game.get_players())
+                            get_db(game.PLAYER_TYPE).insert_rows(
+                                db,
+                                game.get_table_prefix(),
+                                game.get_players()
+                            )
                         except rcon.exceptions.EmptyResponse:
                             log.warning('No RCON response.')
                         except AutoQueryError as exc:
