@@ -1,0 +1,4 @@
+gamedig
+rcon
+attrs
+mysql-connector-python
