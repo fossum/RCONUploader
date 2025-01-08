@@ -48,3 +48,21 @@ class BaseDB(ABC):
 
         # Save the rows.
         database.execute("COMMIT")
+
+    @staticmethod
+    def _common_ensure_db_struct(database: DBBase, table_prefix: str, column_definitions: Sequence[str]) -> bool:
+        # Ensure table structure.
+        database.create_table(
+            BaseDB.ONLINE_TABLE_F.format(table_prefix),
+            '''
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                count TINYINT UNSIGNED,
+                players JSON
+            ''',
+            if_not_exists=True)
+        database.create_table(
+            BaseDB.KNOWN_PLAYERS_F.format(table_prefix),
+            f"{', '.join(column_definitions)}",
+            if_not_exists=True)
+        return True
