@@ -4,5 +4,5 @@
 if [ "$#" -ne "0" ]; then
     exec "$@"
 else
-    exec "python3 ./main.py"
+    exec python3 ./main.py
 fi

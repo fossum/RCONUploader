@@ -72,7 +72,10 @@ def get_configuration() -> dict[str, dict[str, str | int]]:
         if file_config.has_section(param.config_section):
             config_var = file_config.get(param.config_section, param.name, fallback=None)
 
-        config[DATABASE_SECTION][option] = best_option(param.default_value, getenv(param.env_var), config_var)
+        try:
+            config[DATABASE_SECTION][option] = best_option(param.default_value, getenv(param.env_var), config_var)
+        except ValueError:
+            raise ValueError(f"No configuration '{DATABASE_SECTION}:{option}' value set.")
 
         assert config[DATABASE_SECTION][option], f'No configuration "{option}" value set.'
         config[DATABASE_SECTION][option] = param.type(config[DATABASE_SECTION][option])

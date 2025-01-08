@@ -1,4 +1,6 @@
 gamedig
 rcon
 attrs
-mysql-connector-python
+# mysql-connector-python
+mariadb
+typing-extensions
