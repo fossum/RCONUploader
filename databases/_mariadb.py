@@ -67,7 +67,7 @@ class MariaDb(DBBase):
             options: str | None = None,
             if_not_exists: bool = False,
             ignore_error: bool = False) -> bool:
-        print(f"Creating table {name}")
+        print(f"Creating database {name}")
         create_cmd_parts = ["CREATE", "DATABASE"]
         if if_not_exists:
             create_cmd_parts.append("IF NOT EXISTS")

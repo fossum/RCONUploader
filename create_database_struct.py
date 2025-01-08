@@ -21,7 +21,7 @@ Note:
     It will prompt for username and password during execution.
 """
 
-from configuration import get_configuration
+from configuration import DATABASE_SECTION, get_configuration
 from getpass import getpass
 
 from databases import MariaDb
@@ -29,6 +29,7 @@ from databases import MariaDb
 
 if __name__ == "__main__":
     config = get_configuration()
+    config = config[DATABASE_SECTION]
 
     username = input("Enter username: ")
     password = getpass()
