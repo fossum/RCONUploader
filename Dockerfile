@@ -1,4 +1,17 @@
-FROM ubuntu
+FROM ubuntu:noble
+
+RUN CODENAME=noble && \
+    echo "deb http://truenas.thefoss.org:9142/ubuntu/ $CODENAME main restricted universe multiverse" > /etc/apt/sources.list && \
+    echo "deb http://truenas.thefoss.org:9142/ubuntu/ $CODENAME-security main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb http://truenas.thefoss.org:9142/ubuntu/ $CODENAME-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb http://truenas.thefoss.org:9142/ubuntu/ $CODENAME-backports main restricted universe multiverse" >> /etc/apt/sources.list
+
+# Always use local if available (even if it's outdated).
+RUN { \
+    echo 'Package: *'; \
+    echo 'Pin: origin "truenas.thefoss.org:9142"'; \
+    echo 'Pin-Priority: 1001'; \
+} >> /etc/apt/preferences.d/truenas-preferences
 
 ADD requirements.txt /uploader/
 
