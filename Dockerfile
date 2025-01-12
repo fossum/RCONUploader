@@ -13,16 +13,20 @@ RUN { \
     echo 'Pin-Priority: 1001'; \
 } >> /etc/apt/preferences.d/truenas-preferences
 
-ADD requirements.txt /uploader/
+COPY requirements.txt /uploader/
 
-RUN apt update && \
-    apt install git openssh-client python3 python3-pip python3-venv libmariadb-dev -y
+RUN apt-get update && \
+    apt-get install --no-install-recommends \
+    git openssh-client python3 python3-pip \
+    python3-venv libmariadb-dev \
+    build-essential python-dev-is-python3 \
+    -y
 
 # Add Code
-ADD ./entrypoint.sh /uploader/
-ADD ./*.py /uploader/
-ADD ./databases /uploader/databases
-ADD ./games /uploader/games
+COPY ./entrypoint.sh /uploader/
+COPY ./*.py /uploader/
+COPY ./databases /uploader/databases
+COPY ./games /uploader/games
 
 # Set the working directory.
 WORKDIR /uploader
