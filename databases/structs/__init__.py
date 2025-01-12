@@ -13,6 +13,7 @@ _DB_MAP = {
 
 
 def get_db(player: Type[BasePlayer]) -> Type[BaseDB]:
+    """Get the database type for a player type."""
     if (db_type := _DB_MAP.get(player)) is None:
         raise ValueError
 

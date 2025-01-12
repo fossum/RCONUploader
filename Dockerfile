@@ -1,17 +1,38 @@
-FROM alpine
+FROM ubuntu:noble
 
-RUN apk update && \
-    apk add python3 py3-pip git
-RUN pip3 install --break-system-packages \
-    git+https://github.com/fossum/rcon.git@feature/add-enforce-labels-flag \
-    attrs \
-    mysql-connector-python
+RUN CODENAME=noble && \
+    echo "deb http://truenas.thefoss.org:9142/ubuntu/ $CODENAME main restricted universe multiverse" > /etc/apt/sources.list && \
+    echo "deb http://truenas.thefoss.org:9142/ubuntu/ $CODENAME-security main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb http://truenas.thefoss.org:9142/ubuntu/ $CODENAME-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb http://truenas.thefoss.org:9142/ubuntu/ $CODENAME-backports main restricted universe multiverse" >> /etc/apt/sources.list
+
+# Always use local if available (even if it's outdated).
+RUN { \
+    echo 'Package: *'; \
+    echo 'Pin: origin "truenas.thefoss.org:9142"'; \
+    echo 'Pin-Priority: 1001'; \
+} >> /etc/apt/preferences.d/truenas-preferences
+
+ADD requirements.txt /uploader/
+
+RUN apt update && \
+    apt install git openssh-client python3 python3-pip python3-venv libmariadb-dev -y
 
 # Add Code
 ADD ./entrypoint.sh /uploader/
 ADD ./*.py /uploader/
-ADD ./databases/*.py /uploader/databases/
+ADD ./databases /uploader/databases
+ADD ./games /uploader/games
+
+# Set the working directory.
+WORKDIR /uploader
+
+# Create the Python virtual environment.
+RUN mkdir -p .venv \
+    && python3 -m venv .venv \
+    && . .venv/bin/activate \
+    && pip install --upgrade pip \
+    && pip install --no-cache-dir --requirement /uploader/requirements.txt
 
 # Run it
-WORKDIR /uploader
 ENTRYPOINT ["/bin/sh", "./entrypoint.sh"]

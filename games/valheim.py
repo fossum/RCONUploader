@@ -3,9 +3,9 @@ from games.gd_game import GDGame
 from players import BasicPlayer
 
 
-class Minecraft(GDGame, game_name="minecraft"):
+class Valheim(GDGame, game_name="valheim"):
     PLAYER_TYPE = BasicPlayer
-    DEFAULT_PORT = 25565
+    DEFAULT_PORT = 2457
 
     def get_players(self) -> tuple[BasicPlayer, ...]:
         """Get a list of players currently on the server.
@@ -21,5 +21,5 @@ class Minecraft(GDGame, game_name="minecraft"):
 
 
 if __name__ == "__main__":
-    game = Minecraft('thefoss.org', 25565)
+    game = Valheim('localhost')
     print(game.get_players())

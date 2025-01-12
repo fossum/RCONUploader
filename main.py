@@ -1,16 +1,16 @@
 
-import json
 import logging
 from time import sleep
 
+from gamedig import AutoQueryError, PacketReceiveError
+
 import rcon.exceptions
 
-from configuration import get_configuration, GAMES_KEY
-from databases import DBBase
+from configuration import DATABASE_SECTION, GAMES_KEY, get_configuration
 from databases.structs import get_db
-from databases import MySQL
+from databases import MariaDb
 from games import get_game
-from players import SteamPlayer
+from games.base_game import Game
 
 
 if __name__ == "__main__":
@@ -20,33 +20,43 @@ if __name__ == "__main__":
     )
     log = logging.getLogger()
 
-    games = []
+    games: list[Game] = []
     for game_dict in this_config[GAMES_KEY].values():
         game_type = game_dict.pop('type')
         games.append(get_game(game_type, **game_dict))
 
-    with MySQL(
-            this_config['database_host'],
-            this_config['database_user'],
-            this_config['database_pass'],
-            this_config['database_name']) as db:
+    database_config = this_config[DATABASE_SECTION]
+
+    with MariaDb(
+            host=database_config['database_host'],
+            user=database_config['database_user'],
+            password=database_config['database_pass'],
+            database=database_config['database_name']
+        ) as db:
         for game in games:
-            get_db(game.PLAYER_TYPE).ensure_db_struct(db, type(game).__name__.lower())
+            get_db(game.PLAYER_TYPE).ensure_db_struct(db, game.get_table_prefix())
 
     while True:
         try:
-            with MySQL(
-                    this_config['database_host'],
-                    this_config['database_user'],
-                    this_config['database_pass'],
-                    this_config['database_name']) as db:
+            with MariaDb(
+                host=database_config['database_host'],
+                user=database_config['database_user'],
+                password=database_config['database_pass'],
+                database=database_config['database_name']
+            ) as db:
 
                 while True:
                     for game in games:
                         try:
-                            get_db(game.PLAYER_TYPE).insert_rows(db, type(game).__name__.lower(), game.get_players())
+                            get_db(game.PLAYER_TYPE).insert_rows(
+                                db,
+                                game.get_table_prefix(),
+                                game.get_players()
+                            )
                         except rcon.exceptions.EmptyResponse:
-                            log.warning('No RCON response.')
-                    sleep(5)
+                            log.warning(f'[{type(game).__name__}][{game.host}]:No RCON response.')
+                        except (AutoQueryError, PacketReceiveError) as exc:
+                            log.warning(f'[{type(game).__name__}][{game.host}]:query error: {exc}')
+                    sleep(15)
         except ConnectionRefusedError:
             log.warning('MySQL Server down.')
