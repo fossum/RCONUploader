@@ -23,7 +23,7 @@ class GameParam:
     type: Type
 
 
-CONFIG_PATH = Path(__file__).parent / 'config.ini'
+CONFIG_PATH = Path(__file__).parent / 'config/config.ini'
 DATABASE_SECTION = 'DATABASE'
 RCON_SECTION = 'RCON'
 GAMES_KEY = 'GAMES'

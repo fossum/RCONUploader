@@ -1,15 +1,32 @@
-FROM ubuntu
+FROM ubuntu:noble
 
-ADD requirements.txt /uploader/
+RUN CODENAME=noble && \
+    echo "deb http://truenas.thefoss.org:9142/ubuntu/ $CODENAME main restricted universe multiverse" > /etc/apt/sources.list && \
+    echo "deb http://truenas.thefoss.org:9142/ubuntu/ $CODENAME-security main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb http://truenas.thefoss.org:9142/ubuntu/ $CODENAME-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb http://truenas.thefoss.org:9142/ubuntu/ $CODENAME-backports main restricted universe multiverse" >> /etc/apt/sources.list
 
-RUN apt update && \
-    apt install git openssh-client python3 python3-pip python3-venv libmariadb-dev -y
+# Always use local if available (even if it's outdated).
+RUN { \
+    echo 'Package: *'; \
+    echo 'Pin: origin "truenas.thefoss.org:9142"'; \
+    echo 'Pin-Priority: 1001'; \
+} >> /etc/apt/preferences.d/truenas-preferences
+
+COPY requirements.txt /uploader/
+
+RUN apt-get update && \
+    apt-get install --no-install-recommends \
+    git openssh-client python3 python3-pip \
+    python3-venv libmariadb-dev \
+    build-essential python-dev-is-python3 \
+    -y
 
 # Add Code
-ADD ./entrypoint.sh /uploader/
-ADD ./*.py /uploader/
-ADD ./databases /uploader/databases
-ADD ./games /uploader/games
+COPY ./entrypoint.sh /uploader/
+COPY ./*.py /uploader/
+COPY ./databases /uploader/databases
+COPY ./games /uploader/games
 
 # Set the working directory.
 WORKDIR /uploader
